@@ -1,0 +1,28 @@
+name: Build FMU
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  build-fmu:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Pull OpenModelica Docker image
+      run: docker pull openmodelica/openmodelica
+
+    - name: Generate FMU using Docker
+      run: |
+        docker run --rm -v ${{ github.workspace }}:/mnt openmodelica/openmodelica \
+          omc --simCodeTarget=Cpp --emit-fmu /mnt/GridTiedMicrogridRLC.mo
+
+    - name: Upload FMU as artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: GridTiedMicrogridRLC-FMU
+        path: GridTiedMicrogridRLC.fmu
